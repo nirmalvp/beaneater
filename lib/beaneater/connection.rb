@@ -118,9 +118,10 @@ module Beaneater
       if ['OK','FOUND', 'RESERVED'].include?(status)
         bytes_size = body_values[-1].to_i
         raw_body = connection.read(bytes_size)
+        id = body_values[1]
         body = status == 'OK' ? YAML.load(raw_body) : config.job_parser.call(raw_body)
         crlf = connection.read(2) # \r\n
-        raise ExpectedCrlfError.new('EXPECTED_CRLF', cmd) if crlf != "\r\n"
+        raise MyCustomExpectedCrlfError.new('EXPECTED_CRLF', cmd, id, body) if crlf != "\r\n"
       end
       id = body_values[1]
       response = { :status => status, :body => body }

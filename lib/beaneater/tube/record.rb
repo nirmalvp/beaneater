@@ -58,6 +58,30 @@ module Beaneater
       nil
     end
 
+
+    # Peek at next job within this tube in given `state`. If the next job has a CRLF Exception, deletes the job
+    #
+    # @param [String] state The job state to peek at (`ready`, `buried`, `delayed`)
+    # @return [Beaneater::Job] The next job within this tube.
+    # @example
+    #  @tube.peek(:ready) # => <Beaneater::Job id=5 body=foo>
+    #
+    # @api public
+    def safe_peek(state)
+      safe_use do
+        res = transmit_until_res "peek-#{state}", :status => "FOUND"
+        Job.new(res)
+      end
+    rescue Beaneater::MyCustomExpectedCrlfError => e
+       id = e.jobId
+       transmit_to_rand "delete #{id}"
+       raise e
+    rescue Beaneater::NotFoundError => ex
+      # Return nil if not found
+      nil
+    end
+
+
     # Reserves the next job from tube.
     #
     # @param [Integer] timeout Number of seconds before timing out

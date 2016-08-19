@@ -73,4 +73,11 @@ module Beaneater
   class TimedOutError < UnexpectedResponse; end
   # Raises when a tube could not be ignored because it is the last watched tube.
   class NotIgnoredError < UnexpectedResponse; end
+  class MyCustomExpectedCrlfError < ExpectedCrlfError
+        attr_reader :jobId, :jobBody
+        def initialize(status, cmd, jobId, jobBody)
+             super(status, cmd)
+             @jobId, @jobBody = jobId, jobBody
+        end
+  end
 end
